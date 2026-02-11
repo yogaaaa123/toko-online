@@ -32,23 +32,22 @@ const loadCartFromStorage = (): CartItem[] => {
 };
 
 export const CartProvider = ({ children }: { children: ReactNode }) => {
-  // Initialize with empty array to avoid hydration mismatch
-  const [items, setItems] = useState<CartItem[]>([]);
-  const [isInitialized, setIsInitialized] = useState(false);
+  // Use lazy initialization to avoid hydration mismatch and cascading renders
+  const [items, setItems] = useState<CartItem[]>(() => {
+    // Return empty array on server-side
+    if (typeof window === 'undefined') {
+      return [];
+    }
+    // Load from localStorage on client-side
+    return loadCartFromStorage();
+  });
 
-  // Load from localStorage on mount (client-side only)
+  // Save to localStorage whenever items change
   useEffect(() => {
-    const savedCart = loadCartFromStorage();
-    setItems(savedCart);
-    setIsInitialized(true);
-  }, []);
-
-  // Save to localStorage whenever items change, but only after initialization
-  useEffect(() => {
-    if (isInitialized) {
+    if (typeof window !== 'undefined') {
       localStorage.setItem('cart', JSON.stringify(items));
     }
-  }, [items, isInitialized]);
+  }, [items]);
 
   const addToCart = (product: Product) => {
     setItems((prevItems) => {

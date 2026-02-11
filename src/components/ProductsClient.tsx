@@ -1,26 +1,25 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import ProductCard from '@/components/ProductCard';
 import BannerCarousel from '@/components/BannerCarousel';
 import Loader from '@/components/Loader';
 import { Product } from '@/types';
+import { useSearchParams } from 'next/navigation';
 
 interface ProductsClientProps {
   initialData: Product[];
 }
 
 const CACHE_KEY = 'products_cache';
-const CACHE_DURATION = 3 * 60 * 1000; // 3 menit dalam milliseconds
+
 
 interface CacheData {
   data: Product[];
   timestamp: number;
 }
 
-import { useSearchParams } from 'next/navigation';
-
-export default function ProductsClient({ initialData }: ProductsClientProps) {
+function ProductsContent({ initialData }: ProductsClientProps) {
   const [products, setProducts] = useState<Product[]>(initialData);
   const [loading, setLoading] = useState(false);
   
@@ -37,37 +36,24 @@ export default function ProductsClient({ initialData }: ProductsClientProps) {
   }, [searchParams]);
 
   useEffect(() => {
-    // Cek apakah ada cache di localStorage
-    const cachedData = getCachedData();
+    // Selalu gunakan data dari SSR sebagai source of truth saat pertama load
+    setProducts(initialData);
+    setCacheData(initialData); // Update cache dengan data terbaru dari server
 
-    if (cachedData) {
-      // Pakai data dari cache
-      console.log('📦 Menggunakan data dari cache');
-      setProducts(cachedData);
-    } else {
-      // Cache expired atau tidak ada, pakai initial data dari SSR
-      console.log('🆕 Cache expired/tidak ada, pakai data SSR');
-      setProducts(initialData);
-      setCacheData(initialData);
-    }
-
-    // Optional: Setup interval untuk auto-refresh setelah 3 menit
+    // Optional: Setup interval untuk auto-refresh
     const intervalId = setInterval(() => {
-      const cached = getCachedData();
-      if (!cached) {
-        console.log('⏰ Cache expired, fetching fresh data...');
-        fetchFreshData();
-      }
+      // Refresh background
+      fetchFreshData();
     }, 30000); // Check setiap 30 detik
 
     return () => clearInterval(intervalId);
-  }, []);
+  }, [initialData]);
 
   // Fungsi untuk ambil data fresh dari API (CSR)
   const fetchFreshData = async () => {
     setLoading(true);
     try {
-      const res = await fetch('https://api.escuelajs.co/api/v1/products');
+      const res = await fetch('/api/products');
       const data = await res.json();
       setProducts(data);
       setCacheData(data);
@@ -132,30 +118,16 @@ export default function ProductsClient({ initialData }: ProductsClientProps) {
   );
 }
 
-// Helper functions untuk localStorage caching
-function getCachedData(): Product[] | null {
-  if (typeof window === 'undefined') return null;
-
-  try {
-    const cached = localStorage.getItem(CACHE_KEY);
-    if (!cached) return null;
-
-    const { data, timestamp }: CacheData = JSON.parse(cached);
-    const now = Date.now();
-    const isExpired = now - timestamp > CACHE_DURATION;
-
-    if (isExpired) {
-      // Hapus cache yang expired
-      localStorage.removeItem(CACHE_KEY);
-      return null;
-    }
-
-    return data;
-  } catch (error) {
-    console.error('Error reading cache:', error);
-    return null;
-  }
+export default function ProductsClient({ initialData }: ProductsClientProps) {
+  return (
+    <Suspense fallback={<Loader />}>
+      <ProductsContent initialData={initialData} />
+    </Suspense>
+  );
 }
+
+// Helper functions untuk localStorage caching
+
 
 function setCacheData(data: Product[]): void {
   if (typeof window === 'undefined') return;

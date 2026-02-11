@@ -43,7 +43,10 @@ export default function CheckoutPage() {
   };
 
   if (items.length === 0 && !isSuccess) {
-    router.push('/cart');
+    // Use useEffect to redirect on client-side only
+    if (typeof window !== 'undefined') {
+      router.push('/cart');
+    }
     return null;
   }
 

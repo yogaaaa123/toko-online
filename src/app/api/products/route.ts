@@ -1,28 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-// In-memory store for demo (in production, use a database)
-const localProducts: Array<{
-  id: number;
-  title: string;
-  price: number;
-  description: string;
-  category: { id: number; name: string; image: string };
-  images: string[];
-}> = [];
+import { addLocalProduct } from '@/lib/productStore';
+import { fetchMergedProducts } from '@/lib/productService';
 
 // GET - List all products
 export async function GET() {
   try {
-    // Fetch from Platzi API and merge with local products
-    const response = await fetch('https://api.escuelajs.co/api/v1/products?limit=20', {
-      next: { revalidate: 60 }, // ISR - revalidate every 60 seconds
-    });
-    
-    const apiProducts = await response.json();
-    
-    // Merge API products with locally created products
-    const allProducts = [...localProducts, ...apiProducts];
-    
+    const allProducts = await fetchMergedProducts();
     return NextResponse.json(allProducts);
   } catch (error) {
     console.error('Error fetching products:', error);
@@ -69,7 +52,7 @@ export async function POST(request: NextRequest) {
     const newProduct = await response.json();
     
     // Also store locally for immediate updates
-    localProducts.unshift(newProduct);
+    addLocalProduct(newProduct);
 
     return NextResponse.json(newProduct, { status: 201 });
   } catch (error) {
