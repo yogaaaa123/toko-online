@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { verifyToken } from '@/lib/auth';
 
 const protectedRoutes = ['/checkout', '/admin'];
 
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   
   const isProtectedRoute = protectedRoutes.some(route => 
@@ -11,8 +12,8 @@ export function proxy(request: NextRequest) {
   );
 
   if (isProtectedRoute) {
-    const token = request.cookies.get('auth-token');
-    const role = request.cookies.get('user-role')?.value;
+    const tokenCookie = request.cookies.get('auth-token');
+    const token = tokenCookie?.value;
 
     if (!token) {
       const loginUrl = new URL('/login', request.url);
@@ -20,8 +21,22 @@ export function proxy(request: NextRequest) {
       return NextResponse.redirect(loginUrl);
     }
 
-    if (pathname.startsWith('/admin') && role !== 'admin') {
-      return NextResponse.redirect(new URL('/', request.url));
+    // Verify JWT
+    const payload = await verifyToken(token);
+
+    if (!payload) {
+      // Invalid token -> Redirect to login
+      const loginUrl = new URL('/login', request.url);
+      loginUrl.searchParams.set('returnUrl', pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+
+    // Role Check for Admin Routes
+    if (pathname.startsWith('/admin')) {
+      const role = payload.role as string;
+      if (role !== 'admin') {
+        return NextResponse.redirect(new URL('/', request.url));
+      }
     }
   }
 

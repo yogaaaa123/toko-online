@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 import { addLocalProduct } from '@/lib/productStore';
 import { fetchMergedProducts } from '@/lib/productService';
 
@@ -19,6 +20,16 @@ export async function GET() {
 // POST - Create new product
 export async function POST(request: NextRequest) {
   try {
+    const cookieStore = await cookies();
+    const token = cookieStore.get('auth-token');
+
+    if (!token) {
+      return NextResponse.json(
+        { error: 'Unauthorized: Login required' },
+        { status: 401 }
+      );
+    }
+
     const body = await request.json();
     const { title, price, description, categoryId, images } = body;
 
@@ -46,7 +57,9 @@ export async function POST(request: NextRequest) {
     });
 
     if (!response.ok) {
-      throw new Error('Failed to create product');
+      const errorData = await response.text();
+      console.error('External API Error:', errorData);
+      throw new Error(`Failed to create product: ${errorData}`);
     }
 
     const newProduct = await response.json();
@@ -57,8 +70,22 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(newProduct, { status: 201 });
   } catch (error) {
     console.error('Error creating product:', error);
+    // Extract error message if possible
+    const errorMessage = error instanceof Error ? error.message : 'Gagal membuat produk';
+    
+    // Try to parse if it's a JSON string from the external API
+    let parsedError = errorMessage;
+    try {
+      const jsonError = JSON.parse(errorMessage.replace('Failed to create product: ', ''));
+      if (jsonError.message) {
+         parsedError = Array.isArray(jsonError.message) ? jsonError.message.join(', ') : jsonError.message;
+      }
+    } catch {
+      // Ignore parsing error
+    }
+
     return NextResponse.json(
-      { error: 'Gagal membuat produk' },
+      { error: parsedError },
       { status: 500 }
     );
   }

@@ -247,4 +247,78 @@ describe('🔐 AuthContext', () => {
       expect(screen.getByTestId('auth-status')).toHaveTextContent('Not Authenticated')
     })
   })
+
+  it('handles network error during checkAuth', async () => {
+    // Mock network error on initial check
+    vi.mocked(global.fetch).mockRejectedValueOnce(new Error('Network error'))
+
+    render(
+      <AuthProvider>
+        <TestComponent />
+      </AuthProvider>
+    )
+
+    // Should finish loading and be not authenticated (graceful failure)
+    await waitFor(() => {
+      expect(screen.queryByText('Loading...')).not.toBeInTheDocument()
+    })
+
+    expect(screen.getByTestId('auth-status')).toHaveTextContent('Not Authenticated')
+  })
+
+  it('handles network error during logout', async () => {
+      const user = userEvent.setup()
+      const mockUser = {
+        id: 1,
+        email: 'user@example.com',
+        name: 'Test User',
+        role: 'user',
+        avatar: '',
+      }
+  
+      // Initial check auth - user is logged in
+      vi.mocked(global.fetch).mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ isAuthenticated: true, user: mockUser }),
+      } as Response)
+  
+      render(
+        <AuthProvider>
+          <TestComponent />
+        </AuthProvider>
+      )
+  
+      await waitFor(() => {
+        expect(screen.getByTestId('auth-status')).toHaveTextContent('Authenticated')
+      })
+  
+      // Mock logout network error
+      vi.mocked(global.fetch).mockRejectedValueOnce(new Error('Network error'))
+  
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      
+      await user.click(screen.getByText('Logout'))
+  
+      // Even if API fails, client side should clear auth?
+      // Looking at code: 
+      // catch (error) { console.error('Logout error:', error); }
+      // It DOES NOT clear user if fetch fails.
+      
+      await waitFor(() => {
+        expect(consoleSpy).toHaveBeenCalledWith('Logout error:', expect.any(Error))
+      })
+      
+      consoleSpy.mockRestore()
+  })
+
+  it('throws error when useAuth is used outside AuthProvider', () => {
+    // We need to suppress console.error for this test as React logs the error boundary
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    
+    expect(() => {
+      render(<TestComponent />)
+    }).toThrow('useAuth must be used within an AuthProvider')
+    
+    consoleSpy.mockRestore()
+  })
 })

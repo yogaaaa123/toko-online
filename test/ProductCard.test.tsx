@@ -97,6 +97,18 @@ describe('ProductCard', () => {
         expect(image).toHaveAttribute('src', 'https://example.com/image.jpg')
     })
 
+    it('handles valid JSON string that parses to a string (not array)', () => {
+        // This targets line 23: else if (typeof parsed === 'string') img = parsed;
+        // ' "valid-url" ' -> JSON.parse -> 'valid-url'
+        const product = {
+          ...mockProduct,
+          images: [`"https://example.com/parsed-string.jpg"`], 
+        }
+        render(<ProductCard product={product} />)
+        const image = screen.getByRole('img')
+        expect(image).toHaveAttribute('src', 'https://example.com/parsed-string.jpg')
+    })
+
     it('handles JSON parse error gracefully', () => {
         // This simulates a broken JSON string that doesn't parse, so it falls through to retry logic
         // If it starts with http after cleaning quotes, it uses it. If not, fallback.

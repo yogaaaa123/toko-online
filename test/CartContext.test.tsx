@@ -232,4 +232,25 @@ describe('CartContext', () => {
     expect(screen.getByTestId('item-1')).toHaveTextContent('Test Product x 2')
     expect(screen.getByTestId('item-2')).toHaveTextContent('Product 2 x 1')
   })
+
+  it('handles localStorage setItem error gracefully', async () => {
+    const user = userEvent.setup()
+    
+    // Mock setItem to throw error
+    vi.mocked(localStorage.setItem).mockImplementation(() => {
+      throw new Error('QuotaExceededError')
+    })
+
+    render(
+      <CartProvider>
+        <TestComponent />
+      </CartProvider>
+    )
+    
+    // Add item - should not crash, but log error
+    await user.click(screen.getByText('Add'))
+    
+    expect(screen.getByTestId('total-items')).toHaveTextContent('1')
+    expect(consoleErrorSpy).toHaveBeenCalledWith('Failed to save cart to localStorage:', expect.any(Error))
+  })
 })
