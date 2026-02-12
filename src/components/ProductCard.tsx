@@ -13,7 +13,6 @@ interface ProductCardProps {
 export default function ProductCard({ product }: ProductCardProps) {
   const { addToCart } = useCart();
 
-  // Platzi API image handling...
   let imageUrl = 'https://placehold.co/600x400';
   if (product.images && product.images.length > 0) {
       let img = product.images[0];
@@ -23,7 +22,7 @@ export default function ProductCard({ product }: ProductCardProps) {
              if (Array.isArray(parsed) && parsed.length > 0) img = parsed[0];
              else if (typeof parsed === 'string') img = parsed;
           } catch {
-             // ignore
+             
           }
       }
       img = img.replace(/^["']|["']$/g, '');
@@ -33,7 +32,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   }
 
   const handleAddToCart = (e: React.MouseEvent) => {
-    e.preventDefault(); // Prevent navigating to product detail
+    e.preventDefault(); 
     addToCart(product);
   };
 
