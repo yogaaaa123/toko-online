@@ -13,7 +13,6 @@ export default function MonthlyTargetCard({
   target = 20000,
   current = 15110,
   todayEarning = 3287,
-  // lastMonthEarning = 2800,
 }: MonthlyTargetCardProps) {
   const percentage = ((current / target) * 100).toFixed(2);
   const percentageNum = parseFloat(percentage);
