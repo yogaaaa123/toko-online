@@ -1,11 +1,10 @@
 #  Toko Online (Next.js 16 E-Commerce)
-oke fix
 
-pasdword admin:1
+pasdword admin:
 Email: admin@mail.com
 Password: admin123
   
-pasword user:1
+pasword user:
 john@mail.com
 changeme
 
