@@ -1,17 +1,24 @@
-# 🛍️ Toko Online (Next.js 16 E-Commerce)
+#  Toko Online (Next.js 16 E-Commerce)
 
-> A modern, scalable, and secure e-commerce application built with Next.js 16, TypeScript, and TailwindCSS.
+pasdword admin:
+Email: admin@mail.com
+Password: admin123
+ 
+pasword user:
+john@mail.com
+changeme
+
 
 ![Next.js](https://img.shields.io/badge/Next.js-16.1-black?style=flat-square&logo=next.js)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=flat-square&logo=typescript)
 ![TailwindCSS](https://img.shields.io/badge/Tailwind-CSS-38B2AC?style=flat-square&logo=tailwind-css)
 ![Vitest](https://img.shields.io/badge/Tests-Vitest-yellow?style=flat-square&logo=vitest)
 
-## 📖 Overview
+##  Overview
 
 **Toko Online** is a full-featured e-commerce platform designed to demonstrate modern web development practices. It leverages the latest Next.js 16 App Router for performance, server-side rendering, and robust routing. The application features a secure custom authentication system, a dynamic product catalog, shopping cart management, and a protected admin dashboard.
 
-## 🛠️ Tech Stack
+##  Tech Stack
 
 ### Core
 
@@ -41,7 +48,7 @@
 
 ---
 
-## 🔐 Security Architecture
+##  Security Architecture
 
 This project implements a **Defense-in-Depth** security strategy, focusing on stateless authentication and secure session management.
 
@@ -71,16 +78,16 @@ Acting as the application's firewall, the Proxy Middleware intercepts requests t
 
 ---
 
-## 🚀 Key Features
+##  Key Features
 
-### 👤 Customer Features
+###  Customer Features
 
 - **Product Discovery**: Dynamic grid with search and category filtering.
 - **Product Details**: SEO-optimized product pages with server-side rendering.
 - **Shopping Cart**: Real-time cart management with persistence.
 - **Checkout Flow**: Protected checkout route for authenticated users.
 
-### 🛡️ Admin Dashboard
+###  Admin Dashboard
 
 - **Protected Access**: Only accessible via secure Admin JWT.
 - **Product Management**: Interface for managing catalog (CRUD).
@@ -88,7 +95,7 @@ Acting as the application's firewall, the Proxy Middleware intercepts requests t
 
 ---
 
-## ⚡ Getting Started
+##  Getting Started
 
 ### Prerequisites
 
@@ -133,7 +140,7 @@ Acting as the application's firewall, the Proxy Middleware intercepts requests t
 
 ---
 
-## 🧪 Testing
+##  Testing
 
 We use **Vitest** for unit and integration testing.
 
@@ -148,7 +155,7 @@ We use **Vitest** for unit and integration testing.
 
 ---
 
-## 📂 Project Structure
+##  Project Structure
 
 ```
 src/
@@ -166,6 +173,6 @@ src/
 
 ---
 
-## 📜 License
+##  License
 
 This project is licensed under the MIT License - see the LICENSE file for details.

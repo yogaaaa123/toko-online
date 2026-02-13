@@ -13,7 +13,7 @@ export default function MonthlyTargetCard({
   target = 20000,
   current = 15110,
   todayEarning = 3287,
-  lastMonthEarning = 2800,
+  // lastMonthEarning = 2800,
 }: MonthlyTargetCardProps) {
   const percentage = ((current / target) * 100).toFixed(2);
   const percentageNum = parseFloat(percentage);
@@ -23,16 +23,16 @@ export default function MonthlyTargetCard({
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (percentageNum / 100) * circumference;
 
-  const todayChange = todayEarning - lastMonthEarning;
-  const todayChangePercent = ((todayChange / lastMonthEarning) * 100).toFixed(0);
-  const isPositive = todayChange > 0;
+  // const todayChange = todayEarning - lastMonthEarning;
+  // const todayChangePercent = ((todayChange / lastMonthEarning) * 100).toFixed(0);
+  // const isPositive = todayChange > 0;
 
   return (
     <div className="bg-white rounded-xl shadow-md p-6 border border-purple-100 hover:shadow-lg transition-shadow">
       <div className="flex justify-between items-start mb-4">
         <div>
           <h3 className="text-sm font-medium text-gray-600 mb-1">Monthly Target</h3>
-          <p className="text-xs text-gray-500">Target you've set for each month</p>
+          <p className="text-xs text-gray-500">Target you&apos;ve set for each month</p>
         </div>
         <button className="text-gray-400 hover:text-gray-600">
           <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -87,7 +87,7 @@ export default function MonthlyTargetCard({
           You earn <span className="font-bold text-gray-900">${todayEarning.toLocaleString()}</span> today,
         </p>
         <p className="text-sm text-gray-600">
-          it's higher than last month. Keep up your good work!
+          it&apos;s higher than last month. Keep up your good work!
         </p>
       </div>
 

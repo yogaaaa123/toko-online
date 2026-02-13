@@ -14,6 +14,5 @@ export default async function Home() {
   // Data di-fetch di server (SSR)
   const initialProducts = await fetchProducts();
 
-  // Pass initial data ke Client Component
   return <ProductsClient initialData={initialProducts} />;
 }

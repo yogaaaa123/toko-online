@@ -10,22 +10,36 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  // Fetch just enough for metadata
-  const product: Product = await fetch(`https://api.escuelajs.co/api/v1/products/${id}`).then((res) =>
-    res.json()
-  );
+  try {
+    const product = await fetch(`https://api.escuelajs.co/api/v1/products/${id}`).then((res) => {
+      if (!res.ok) return null;
+      return res.json();
+    });
 
-  const imageUrl = product.images && product.images.length > 0 
-      ? product.images[0].replace(/^["']|["']$/g, '') 
-      : 'https://placehold.co/600x400';
+    if (!product) {
+      return {
+        title: 'Product Not Found',
+        description: 'The product you are looking for does not exist.',
+      };
+    }
 
-  return {
-    title: product.title,
-    description:product.description,
-    openGraph: {
-      images: [imageUrl],
-    },
-  };
+    const imageUrl = product.images && product.images.length > 0 
+        ? product.images[0].replace(/^["']|["']$/g, '') 
+        : 'https://placehold.co/600x400';
+
+    return {
+      title: product.title,
+      description: product.description,
+      openGraph: {
+        images: [imageUrl],
+      },
+    };
+  } catch (error) {
+    console.error('Error generating metadata:', error);
+    return {
+      title: 'Toko Online',
+    };
+  }
 }
 
 export default async function ProductDetail({
@@ -41,10 +55,10 @@ export default async function ProductDetail({
   });
 
   if (!res.ok) {
-    if (res.status === 404) {
+    if (res.status === 404 || res.status === 400) {
       notFound();
     }
-    throw new Error('Failed to fetch product');
+    throw new Error(`Failed to fetch product: ${res.statusText}`);
   }
 
   const product: Product = await res.json();

@@ -22,28 +22,25 @@ export default function CheckoutPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({ ...formData, [event.target.name]: event.target.value });
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
     setIsSubmitting(true);
 
-    // Simulate order submission
     await new Promise(resolve => setTimeout(resolve, 1500));
 
     setIsSuccess(true);
     clearCart();
 
-    // Redirect to home after 3 seconds
     setTimeout(() => {
       router.push('/');
     }, 3000);
   };
 
   if (items.length === 0 && !isSuccess) {
-    // Use useEffect to redirect on client-side only
     if (typeof window !== 'undefined') {
       router.push('/cart');
     }
@@ -67,7 +64,6 @@ export default function CheckoutPage() {
         <h1 className="text-3xl font-bold text-gray-900 mb-8">Checkout</h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Order Form */}
           <div className="bg-white rounded-lg shadow-md p-6">
             <h2 className="text-xl font-bold text-gray-900 mb-6">Informasi Pengiriman</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -168,7 +164,6 @@ export default function CheckoutPage() {
             </form>
           </div>
 
-          {/* Order Summary */}
           <div className="bg-white rounded-lg shadow-md p-6 h-fit">
             <h2 className="text-xl font-bold text-gray-900 mb-6">Ringkasan Pesanan</h2>
             <ul className="divide-y divide-gray-200 mb-6">

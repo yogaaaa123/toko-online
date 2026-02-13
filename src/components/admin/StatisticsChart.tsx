@@ -39,7 +39,7 @@ export default function StatisticsChart() {
           ))}
         </div>
       </div>
-      <p className="text-sm text-gray-500 mb-4">Target you've set for each month</p>
+      <p className="text-sm text-gray-500 mb-4">Target you&apos;ve set for each month</p>
       <ResponsiveContainer width="100%" height={240}>
         <AreaChart data={statisticsData}>
           <defs>
