@@ -1,5 +1,5 @@
 #  Toko Online (Next.js 16 E-Commerce)
-
+fix
 pasdword admin:1
 Email: admin@mail.com
 Password: admin123
