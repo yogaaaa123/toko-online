@@ -36,7 +36,7 @@ const emptyForm: ProductForm = {
   title: '',
   price: '',
   description: '',
-  categoryId: '1',
+  categoryId: '62',
   images: '',
 };
 
@@ -446,11 +446,11 @@ export default function ProductsPage() {
                   onChange={handleChange}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 font-medium transition-all"
                 >
-                  <option value="1">Clothes</option>
-                  <option value="2">Electronics</option>
+                  <option value="62">Clothes</option>
+                  <option value="60">Electronics</option>
                   <option value="3">Furniture</option>
                   <option value="4">Shoes</option>
-                  <option value="5">Others</option>
+                  <option value="67">Others</option>
                 </select>
               </div>
 

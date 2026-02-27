@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
         title,
         price: Number(price),
         description,
-        categoryId: categoryId || 1,
+        categoryId: categoryId || 62,
         images: images || ['https://placehold.co/600x400'],
       }),
     });
