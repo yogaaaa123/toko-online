@@ -4,7 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Product } from '@/types';
 import { Eye, ShoppingCart } from 'lucide-react';
-import { useCart } from '@/context/CartContext';
+import { useCart } from '../context/CartContext';
 
 interface ProductCardProps {
   product: Product;

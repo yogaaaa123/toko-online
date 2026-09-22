@@ -1,4 +1,4 @@
-import '@testing-library/jest-dom'
+import '@testing-library/jest-dom/vitest'
 import { vi } from 'vitest'
 import React from 'react'
 
@@ -14,7 +14,7 @@ const localStorageMock: Storage = {
 
 global.localStorage = localStorageMock
 
-// Mock Next.js modules
+// Mock next/navigation
 vi.mock('next/navigation', () => ({
   useRouter: () => ({
     push: vi.fn(),
@@ -29,7 +29,7 @@ vi.mock('next/navigation', () => ({
 
 vi.mock('next/link', () => ({
   __esModule: true,
-  default: ({ children, href }: { children: React.ReactNode; href: string }) => {
+  default: ({ children, href }: { children: React.ReactNode; href?: string }) => {
     return React.createElement('a', { href }, children)
   },
 }))
@@ -40,3 +40,27 @@ vi.mock('next/image', () => ({
     return React.createElement('img', props)
   },
 }))
+
+// Mock matchMedia
+Object.defineProperty(window, 'matchMedia', {
+  writable: true,
+  value: vi.fn().mockImplementation(query => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: vi.fn(), // deprecated
+    removeListener: vi.fn(), // deprecated
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  })),
+})
+
+// Mock IntersectionObserver
+const intersectionObserverMock = () => ({
+  observe: vi.fn(),
+  disconnect: vi.fn(),
+  unobserve: vi.fn(),
+})
+
+window.IntersectionObserver = vi.fn().mockImplementation(intersectionObserverMock)
