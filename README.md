@@ -1,469 +1,178 @@
-# 🛒 Hello Shop - E-Commerce Next.js 16
+#  Toko Online (Next.js 16 E-Commerce)
+custom
+pasdword admin:
+Email: admin@mail.com
+Password: admin123
+  
+pasword user:
+john@mail.com
+changeme
 
-Aplikasi e-commerce modern menggunakan **Next.js 16.1.6** dengan **React 19**, **TypeScript**, dan **Tailwind CSS v4**.
 
----
+![Next.js](https://img.shields.io/badge/Next.js-16.1-black?style=flat-square&logo=next.js)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=flat-square&logo=typescript)
+![TailwindCSS](https://img.shields.io/badge/Tailwind-CSS-38B2AC?style=flat-square&logo=tailwind-css)
+![Vitest](https://img.shields.io/badge/Tests-Vitest-yellow?style=flat-square&logo=vitest)
 
-## 📋 Daftar Isi
+##  Overview
 
-- [Tech Stack](#-tech-stack)
-- [Fitur Utama](#-fitur-utama)
-- [Arsitektur](#-arsitektur)
-- [Struktur Folder](#-struktur-folder)
-- [API Routes](#-api-routes)
-- [State Management](#-state-management)
-- [Custom Hooks](#-custom-hooks)
-- [Middleware & Security](#-middleware--security)
-- [Testing](#-testing)
-- [Instalasi & Menjalankan](#-instalasi--menjalankan)
+**Toko Online** is a full-featured e-commerce platform designed to demonstrate modern web development practices. It leverages the latest Next.js 16 App Router for performance, server-side rendering, and robust routing. The application features a secure custom authentication system, a dynamic product catalog, shopping cart management, and a protected admin dashboard.
 
----
+##  Tech Stack
 
-## 🛠 Tech Stack
+### Core
 
-| Teknologi        | Versi   | Keterangan                        |
-| :--------------- | :------ | :-------------------------------- |
-| **Next.js**      | 16.1.6  | Framework React dengan App Router |
-| **React**        | 19.2.3  | Library UI                        |
-| **TypeScript**   | 5.x     | Type Safety                       |
-| **Tailwind CSS** | 4.x     | Utility-first CSS                 |
-| **Bun**          | Latest  | Package Manager & Runtime         |
-| **Jest**         | 30.x    | Testing Framework                 |
-| **Lucide React** | 0.563.0 | Icon Library                      |
+- **Framework**: [Next.js 16 (App Router)](https://nextjs.org/) - React Framework for Production
+- **Language**: [TypeScript](https://www.typescriptlang.org/) - Static Type Checking
+- **Styling**: [TailwindCSS v4](https://tailwindcss.com/) & [Shadcn UI](https://ui.shadcn.com/) - Utility-first CSS & Accessible Components
+- **Icons**: [Lucide React](https://lucide.dev/)
 
----
+### State & Data
 
-## ✨ Fitur Utama
+- **State Management**: React Context API (`CartContext`, `AuthContext`)
+- **Data Fetching**: Native `fetch` with Next.js Caching & Server Actions
+- **Backend API**: Integrated Next.js API Routes (`/app/api`)
+- **External Data**: [Platzi Fake Store API](https://fakeapi.platzi.com/) (Product Data & User Auth Base)
 
-### 🏠 Homepage (Hybrid SSR + CSR)
+### Security (Enterprise Grade)
 
-- **Server-Side Rendering (SSR)**: Data produk di-fetch di server untuk SEO & performa
-- **Client-Side Caching**: LocalStorage caching 3 menit untuk navigasi instant
-- **Live Search**: Pencarian real-time dengan debounce 500ms
-- **Banner Carousel**: Auto-slide setiap 3 detik
+- **JWT Library**: `jose` (Edge Compatible)
+- **Middleware**: Next.js 16 `proxy.ts`
+- **Cookies**: Secure, HttpOnly, SameSite=Lax
 
-### 🔐 Autentikasi
+### Testing
 
-- Login via Platzi Fake Store API
-- Session management dengan HTTP-only cookies
-- Role-based access control (Admin/User)
-- Protected routes dengan middleware
-
-### 🛒 Shopping Cart
-
-- Persistent cart (localStorage)
-- Add/Remove items
-- Quantity management
-- Total calculation
-
-### 📱 Responsif
-
-- Mobile-first design
-- Hamburger menu untuk mobile
-- Adaptive grid layout
+- **Runner**: [Vitest](https://vitest.dev/)
+- **Environment**: JSDOM / Happy-DOM
+- **Utilities**: React Testing Library
 
 ---
 
-## 🏗 Arsitektur
+##  Security Architecture
 
-```
-┌─────────────────────────────────────────────────────────┐
-│                       BROWSER                            │
-├─────────────────────────────────────────────────────────┤
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐     │
-│  │   Navbar    │  │  Products   │  │    Cart     │     │
-│  │  (Search)   │  │   Client    │  │   Context   │     │
-│  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘     │
-│         │                │                │             │
-│         └────────────────┼────────────────┘             │
-│                          ▼                              │
-│              ┌───────────────────────┐                  │
-│              │    LocalStorage       │                  │
-│              │  (Cart + Product Cache)│                  │
-│              └───────────────────────┘                  │
-└─────────────────────────────────────────────────────────┘
-                          │
-                          ▼
-┌─────────────────────────────────────────────────────────┐
-│                    NEXT.JS SERVER                        │
-├─────────────────────────────────────────────────────────┤
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐     │
-│  │  Middleware │  │ API Routes  │  │   Server    │     │
-│  │ (Auth Check)│  │ (Auth/CRUD) │  │ Components  │     │
-│  └─────────────┘  └─────────────┘  └─────────────┘     │
-└─────────────────────────────────────────────────────────┘
-                          │
-                          ▼
-┌─────────────────────────────────────────────────────────┐
-│               EXTERNAL API (Platzi)                      │
-│          https://api.escuelajs.co/api/v1                │
-└─────────────────────────────────────────────────────────┘
-```
+This project implements a **Defense-in-Depth** security strategy, focusing on stateless authentication and secure session management.
+
+### 1. JWT Authentication Strategy
+
+We utilize a custom JWT implementation using the `jose` library, replacing standard session cookies for stateless scalability.
+
+- **Token Signing**: All tokens are cryptographically signed using HS256 with a server-side `JWT_SECRET`.
+- **Payload**: Contains non-sensitive user data (ID, Role, Email) and wrapped external tokens.
+- **No Hardcoded Sessions**: Unlike legacy systems, sessions are fully dynamic and verified per request.
+
+### 2. Secure Cookie Policy
+
+Tokens are never exposed to the client-side JavaScript (LocalStorage/SessionStorage).
+
+- `HttpOnly`: **True**. Prevents XSS attacks from stealing tokens.
+- `Secure`: **True**. Ensures cookies are only sent over HTTPS (Production).
+- `SameSite`: **Lax**. Mitigates CSRF attacks while maintaining usability.
+
+### 3. Proxy Middleware (`src/proxy.ts`)
+
+Acting as the application's firewall, the Proxy Middleware intercepts requests to protected routes (`/admin`, `/checkout`) before they reach the layout.
+
+- **Validation**: Verifies JWT signature and expiration on every request.
+- **RBAC (Role-Based Access Control)**: Enforces strict role checks (e.g., only `role: 'admin'` can access `/admin`).
+- **Redirects**: Automatically handles unauthorized access attempts with intelligent return URL handling.
 
 ---
 
-## 📁 Struktur Folder
+##  Key Features
 
-```
-toko-online/
-├── public/                      # Static assets
-│   ├── resize.1.png            # Banner image 1
-│   ├── resize.2.png            # Banner image 2
-│   ├── resize.3.png            # Banner image 3
-│   ├── footer.png              # Footer background
-│   ├── dot-pending.svg         # Menu icon
-│   └── mp4/                    # Video assets (loader)
-│
-├── src/
-│   ├── app/                    # Next.js App Router
-│   │   ├── layout.tsx          # Root layout (providers, navbar, footer)
-│   │   ├── page.tsx            # Homepage (SSR fetch)
-│   │   ├── globals.css         # Global styles + Tailwind
-│   │   ├── icon.png            # Favicon
-│   │   │
-│   │   ├── about/              # Halaman Tentang
-│   │   │   └── page.tsx
-│   │   │
-│   │   ├── admin/              # Dashboard Admin (Protected)
-│   │   │   └── page.tsx
-│   │   │
-│   │   ├── cart/               # Halaman Keranjang
-│   │   │   └── page.tsx
-│   │   │
-│   │   ├── checkout/           # Halaman Checkout (Protected)
-│   │   │   └── page.tsx
-│   │   │
-│   │   ├── faq/                # Halaman FAQ
-│   │   │   └── page.tsx
-│   │   │
-│   │   ├── login/              # Halaman Login
-│   │   │   └── page.tsx
-│   │   │
-│   │   ├── product/            # Detail Produk
-│   │   │   └── [id]/
-│   │   │       └── page.tsx    # Dynamic route
-│   │   │
-│   │   ├── products/           # List Produk
-│   │   │   └── page.tsx
-│   │   │
-│   │   └── api/                # API Routes
-│   │       ├── auth/
-│   │       │   ├── login/      # POST: Login
-│   │       │   ├── logout/     # POST: Logout
-│   │       │   └── me/         # GET: Current user
-│   │       │
-│   │       └── products/
-│   │           ├── route.ts    # GET: All products
-│   │           └── [id]/
-│   │               └── route.ts # GET: Single product
-│   │
-│   ├── components/             # React Components
-│   │   ├── layout/
-│   │   │   ├── Navbar.tsx      # Navigation bar + Live search
-│   │   │   └── Footer.tsx      # Footer
-│   │   │
-│   │   ├── ProductsClient.tsx  # Homepage client (caching + filter)
-│   │   ├── ProductCard.tsx     # Card produk
-│   │   ├── ProductActionCard.tsx # Detail produk actions
-│   │   ├── ProductImageGallery.tsx # Gallery gambar produk
-│   │   ├── BannerCarousel.tsx  # Carousel banner
-│   │   ├── AddToCartButton.tsx # Tombol add to cart
-│   │   └── Loader.tsx          # Loading animation
-│   │
-│   ├── context/                # React Context (State Management)
-│   │   ├── AuthContext.tsx     # Authentication state
-│   │   └── CartContext.tsx     # Shopping cart state
-│   │
-│   ├── hooks/                  # Custom React Hooks
-│   │   ├── index.ts            # Export barrel
-│   │   ├── useDebounce.ts      # Debounce value
-│   │   └── useLocalStorage.ts  # Sync state with localStorage
-│   │
-│   ├── types/                  # TypeScript Type Definitions
-│   │   └── index.ts            # Product, CartItem interfaces
-│   │
-│   └── middleware.ts           # Route protection middleware
-│
-├── test/                       # Unit Tests
-│   ├── CartContext.test.tsx    # Cart context tests
-│   └── ProductCard.test.tsx    # ProductCard tests
-│
-├── package.json                # Dependencies & scripts
-├── tsconfig.json               # TypeScript config
-├── next.config.ts              # Next.js config
-├── jest.config.js              # Jest config
-├── jest.setup.js               # Jest setup
-├── postcss.config.mjs          # PostCSS config
-└── eslint.config.mjs           # ESLint config
-```
+###  Customer Features
+
+- **Product Discovery**: Dynamic grid with search and category filtering.
+- **Product Details**: SEO-optimized product pages with server-side rendering.
+- **Shopping Cart**: Real-time cart management with persistence.
+- **Checkout Flow**: Protected checkout route for authenticated users.
+
+###  Admin Dashboard
+
+- **Protected Access**: Only accessible via secure Admin JWT.
+- **Product Management**: Interface for managing catalog (CRUD).
+- **Analytics Overview**: Basic sales and visitor metrics.
 
 ---
 
-## 🔌 API Routes
-
-### `/api/auth/login` (POST)
-
-Login dengan Platzi API dan set cookies.
-
-**Request:**
-
-```json
-{
-  "email": "john@mail.com",
-  "password": "changeme"
-}
-```
-
-**Response:**
-
-```json
-{
-  "user": {
-    "id": 1,
-    "email": "john@mail.com",
-    "name": "John",
-    "role": "admin",
-    "avatar": "https://..."
-  }
-}
-```
-
-**Cookies Set:**
-
-- `auth-token`: Access token
-- `user-role`: User role (admin/customer)
-
----
-
-### `/api/auth/logout` (POST)
-
-Clear auth cookies.
-
----
-
-### `/api/auth/me` (GET)
-
-Get current authenticated user from cookies.
-
-**Response:**
-
-```json
-{
-  "isAuthenticated": true,
-  "user": { ... }
-}
-```
-
----
-
-### `/api/products` (GET)
-
-Get all products from Platzi API.
-
-**Query Params:**
-
-- `limit`: Number of products (default: 20)
-- `offset`: Pagination offset
-
----
-
-### `/api/products/[id]` (GET)
-
-Get single product by ID.
-
----
-
-## 🧠 State Management
-
-### AuthContext (`src/context/AuthContext.tsx`)
-
-Mengelola state autentikasi user.
-
-```typescript
-interface AuthContextType {
-  user: User | null; // Current user data
-  isAuthenticated: boolean; // Login status
-  isLoading: boolean; // Auth check loading
-  login: (email, password) => Promise<Result>;
-  logout: () => Promise<void>;
-}
-```
-
-**Fitur:**
-
-- Auto-check auth on mount via `/api/auth/me`
-- Login via Platzi API
-- Logout dengan clear cookies
-- Role-based access (admin/customer)
-
-**Penggunaan:**
-
-```tsx
-const { user, isAuthenticated, login, logout } = useAuth();
-```
-
----
-
-### CartContext (`src/context/CartContext.tsx`)
-
-Mengelola shopping cart dengan localStorage persistence.
-
-```typescript
-interface CartContextType {
-  items: CartItem[]; // Cart items
-  addToCart: (product) => void;
-  removeFromCart: (productId) => void;
-  clearCart: () => void;
-  totalItems: number; // Total quantity
-  totalPrice: number; // Total price
-}
-```
-
-**Fitur:**
-
-- Persistent cart (survives page refresh)
-- Add item (increment jika sudah ada)
-- Remove item (decrement, hapus jika 0)
-- Clear all items
-- Auto-sync dengan localStorage
-
-**Penggunaan:**
-
-```tsx
-const { items, addToCart, removeFromCart, totalItems, totalPrice } = useCart();
-```
-
----
-
-## 🪝 Custom Hooks
-
-### `useDebounce<T>(value, delay)`
-
-Delay value update untuk optimasi performa.
-
-```typescript
-const debouncedSearch = useDebounce(searchQuery, 500);
-// debouncedSearch baru update setelah 500ms tidak ada perubahan
-```
-
-**Use Case:** Live search, input validation
-
----
-
-### `useLocalStorage<T>(key, initialValue)`
-
-Sync React state dengan localStorage.
-
-```typescript
-const [theme, setTheme] = useLocalStorage("theme", "dark");
-// Otomatis tersimpan dan terbaca dari localStorage
-```
-
-**Use Case:** User preferences, form drafts
-
----
-
-## 🔒 Middleware & Security
-
-### Route Protection (`src/middleware.ts`)
-
-```typescript
-const protectedRoutes = ["/checkout", "/admin"];
-```
-
-**Flow:**
-
-1. User akses protected route
-2. Middleware cek `auth-token` cookie
-3. Jika tidak ada → Redirect ke `/login?returnUrl=...`
-4. Jika ada tapi bukan admin (untuk `/admin`) → Redirect ke `/`
-5. Jika valid → Continue
-
-**Matcher:**
-
-```typescript
-matcher: ["/checkout/:path*", "/admin/:path*"];
-```
-
----
-
-## 🧪 Testing
-
-### Menjalankan Tests
-
-```bash
-# Run all tests
-npm test
-
-# Run with coverage
-npm run test:coverage
-
-# Watch mode
-npm test -- --watch
-```
-
-### Test Files
-
-| File                   | Deskripsi                                   |
-| :--------------------- | :------------------------------------------ |
-| `CartContext.test.tsx` | Test add/remove item, quantity, persistence |
-| `ProductCard.test.tsx` | Test render, click handlers, props          |
-
----
-
-## 🚀 Instalasi & Menjalankan
+##  Getting Started
 
 ### Prerequisites
 
-- Node.js 18+ atau Bun
-- npm, yarn, pnpm, atau bun
+- Node.js 18+
+- npm or yarn
 
-### Langkah Instalasi
+### Installation
 
-```bash
-# Clone repository
-git clone <repo-url>
-cd toko-online
+1.  **Clone the repository**
 
-# Install dependencies
-bun install
-# atau
-npm install
+    ```bash
+    git clone https://github.com/yourusername/toko-online.git
+    cd toko-online
+    ```
 
-# Jalankan development server
-bun dev
-# atau
-npm run dev
-```
+2.  **Install dependencies**
 
-### Scripts
+    ```bash
+    npm install
+    ```
 
-| Script                  | Deskripsi                           |
-| :---------------------- | :---------------------------------- |
-| `npm run dev`           | Development server (localhost:3000) |
-| `npm run build`         | Production build                    |
-| `npm run start`         | Start production server             |
-| `npm run lint`          | Run ESLint                          |
-| `npm test`              | Run Jest tests                      |
-| `npm run test:coverage` | Test with coverage report           |
+3.  **Environment Setup**
+    Create a `.env.local` file in the root directory:
 
----
+    ```env
+    JWT_SECRET=your-super-secret-key-change-this-in-prod
+    NEXT_PUBLIC_API_URL=https://api.escuelajs.co/api/v1
+    ```
 
-## 📝 Demo Credentials
+4.  **Run Development Server**
+    ```bash
+    npm run dev
+    ```
+    Open [http://localhost:3000](http://localhost:3000) with your browser.
+
+### Login Credentials (Demo)
 
 | Role      | Email            | Password   |
-| :-------- | :--------------- | :--------- |
-| **Admin** | `john@mail.com`  | `changeme` |
-| **User**  | `maria@mail.com` | `12345`    |
-
-> ⚠️ Credentials dari Platzi Fake Store API
+| --------- | ---------------- | ---------- |
+| **Admin** | `admin@mail.com` | `admin123` |
+| **User**  | `john@mail.com`  | `changeme` |
 
 ---
 
-## 📄 License
+##  Testing
 
-MIT License
+We use **Vitest** for unit and integration testing.
+
+- **Run all tests**:
+  ```bash
+  npm test
+  ```
+- **Run with coverage**:
+  ```bash
+  npm run test:coverage
+  ```
 
 ---
 
-_Dibuat dengan ❤️ menggunakan Next.js 16_
+##  Project Structure
+
+```
+src/
+├── app/                  # Next.js App Router
+│   ├── api/              # Backend API Routes
+│   ├── admin/            # Protected Admin Pages
+│   ├── (public)/         # Public Facing Pages
+│   └── layout.tsx        # Root Layout
+├── components/           # Reusable UI Components
+├── context/              # React Context (Global State)
+├── lib/                  # Utilities (Auth, API wrappers)
+├── proxy.ts              # Security Middleware
+└── middleware.ts         # (Deprecated/Removed in Next.js 16)
+```
+
+---
+
+##  License
+
+This project is licensed under the MIT License - see the LICENSE file for details.

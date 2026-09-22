@@ -1,28 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-// In-memory store for demo (in production, use a database)
-const localProducts: Array<{
-  id: number;
-  title: string;
-  price: number;
-  description: string;
-  category: { id: number; name: string; image: string };
-  images: string[];
-}> = [];
+import { cookies } from 'next/headers';
+import { addLocalProduct } from '@/lib/productStore';
+import { fetchMergedProducts } from '@/lib/productService';
 
 // GET - List all products
 export async function GET() {
   try {
-    // Fetch from Platzi API and merge with local products
-    const response = await fetch('https://api.escuelajs.co/api/v1/products?limit=20', {
-      next: { revalidate: 60 }, // ISR - revalidate every 60 seconds
-    });
-    
-    const apiProducts = await response.json();
-    
-    // Merge API products with locally created products
-    const allProducts = [...localProducts, ...apiProducts];
-    
+    const allProducts = await fetchMergedProducts();
     return NextResponse.json(allProducts);
   } catch (error) {
     console.error('Error fetching products:', error);
@@ -36,6 +20,16 @@ export async function GET() {
 // POST - Create new product
 export async function POST(request: NextRequest) {
   try {
+    const cookieStore = await cookies();
+    const token = cookieStore.get('auth-token');
+
+    if (!token) {
+      return NextResponse.json(
+        { error: 'Unauthorized: Login required' },
+        { status: 401 }
+      );
+    }
+
     const body = await request.json();
     const { title, price, description, categoryId, images } = body;
 
@@ -57,25 +51,41 @@ export async function POST(request: NextRequest) {
         title,
         price: Number(price),
         description,
-        categoryId: categoryId || 1,
+        categoryId: categoryId || 62,
         images: images || ['https://placehold.co/600x400'],
       }),
     });
 
     if (!response.ok) {
-      throw new Error('Failed to create product');
+      const errorData = await response.text();
+      console.error('External API Error:', errorData);
+      throw new Error(`Failed to create product: ${errorData}`);
     }
 
     const newProduct = await response.json();
     
     // Also store locally for immediate updates
-    localProducts.unshift(newProduct);
+    addLocalProduct(newProduct);
 
     return NextResponse.json(newProduct, { status: 201 });
   } catch (error) {
     console.error('Error creating product:', error);
+    // Extract error message if possible
+    const errorMessage = error instanceof Error ? error.message : 'Gagal membuat produk';
+    
+    // Try to parse if it's a JSON string from the external API
+    let parsedError = errorMessage;
+    try {
+      const jsonError = JSON.parse(errorMessage.replace('Failed to create product: ', ''));
+      if (jsonError.message) {
+         parsedError = Array.isArray(jsonError.message) ? jsonError.message.join(', ') : jsonError.message;
+      }
+    } catch {
+      // Ignore parsing error
+    }
+
     return NextResponse.json(
-      { error: 'Gagal membuat produk' },
+      { error: parsedError },
       { status: 500 }
     );
   }

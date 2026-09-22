@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
+import { signToken } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
   try {
@@ -8,8 +9,6 @@ export async function POST(request: NextRequest) {
 
     // Check for hardcoded admin account
     if (email === 'admin@mail.com' && password === 'admin123') {
-      const cookieStore = await cookies();
-      
       const adminUser = {
         id: 999,
         email: 'admin@mail.com',
@@ -18,29 +17,28 @@ export async function POST(request: NextRequest) {
         avatar: '', // Use default fallback icon
       };
 
-      // Set cookies
-      cookieStore.set('auth-token', 'admin-token-' + Date.now(), {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 60 * 60 * 24 * 7,
-      });
+      // Generate JWT
+      const token = await signToken(adminUser);
 
-      cookieStore.set('user-role', adminUser.role, {
+      // Set cookies
+      const cookieStore = await cookies();
+      cookieStore.set('auth-token', token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
-        maxAge: 60 * 60 * 24 * 7,
+        maxAge: 60 * 60 * 24, // 1 day
+        path: '/',
       });
 
       cookieStore.set('user-info', JSON.stringify(adminUser), {
         httpOnly: false,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
-        maxAge: 60 * 60 * 24 * 7,
+        maxAge: 60 * 60 * 24, // 1 day
+        path: '/',
       });
 
-      return NextResponse.json({ user: adminUser });
+      return NextResponse.json({ success: true, user: adminUser });
     }
 
     // Otherwise, proceed with Platzi API authentication
@@ -62,7 +60,7 @@ export async function POST(request: NextRequest) {
     const data = await response.json();
     const accessToken = data.access_token;
 
-    // Get user profile from Platzi (will have customer role for john/maria)
+    // Get user profile from Platzi
     const profileResponse = await fetch('https://api.escuelajs.co/api/v1/auth/profile', {
       headers: {
         'Authorization': `Bearer ${accessToken}`,
@@ -75,26 +73,25 @@ export async function POST(request: NextRequest) {
 
     const user = await profileResponse.json();
 
+    // Create our own JWT containing the user info + platzi token
+    const tokenPayload = {
+      ...user,
+      platziToken: accessToken,
+    };
+    
+    const token = await signToken(tokenPayload);
+
     // Set auth cookie
     const cookieStore = await cookies();
-    cookieStore.set('auth-token', accessToken, {
-      httpOnly: true,
+    cookieStore.set('auth-token', token, {
+      httpOnly: true, // Secure: only server can read
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       maxAge: 60 * 60 * 24, // 1 day
       path: '/',
     });
 
-    // Set user role cookie (httpOnly for security in middleware check)
-    cookieStore.set('user-role', user.role, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 24,
-      path: '/',
-    });
-
-    // Store user info in a separate cookie (visible to client)
+    // Store user info in a separate cookie (visible to client for UI)
     cookieStore.set('user-info', JSON.stringify({
       id: user.id,
       email: user.email,
@@ -102,7 +99,7 @@ export async function POST(request: NextRequest) {
       role: user.role,
       avatar: user.avatar,
     }), {
-      httpOnly: false,
+      httpOnly: false, // Client can read this for UI
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       maxAge: 60 * 60 * 24,
@@ -111,7 +108,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      token: accessToken,
+      token: token,
       user: {
         id: user.id,
         email: user.email,

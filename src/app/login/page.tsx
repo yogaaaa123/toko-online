@@ -1,14 +1,17 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import Loader from '@/components/Loader';
 import Link from 'next/link';
+import { StarsBackground } from '@/components/animate-ui/components/backgrounds/stars';
+import { Eye, EyeOff } from 'lucide-react';
 
-export default function LoginPage() {
+function LoginForm() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { login, isAuthenticated } = useAuth();
@@ -16,14 +19,12 @@ export default function LoginPage() {
   const searchParams = useSearchParams();
   const returnUrl = searchParams.get('returnUrl') || '/';
 
-  // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
       router.push(returnUrl);
     }
   }, [isAuthenticated, router, returnUrl]);
 
-  // Show loading while checking auth or redirecting
   if (isAuthenticated) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -32,15 +33,14 @@ export default function LoginPage() {
     );
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
     setError('');
     setIsLoading(true);
 
     const result = await login(username, password);
     
     if (result.success) {
-      // Redirect admin to dashboard, regular users to returnUrl (or home)
       if (result.user?.role === 'admin') {
         router.push('/admin');
       } else {
@@ -54,41 +54,28 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
+    <StarsBackground className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-sm w-full space-y-6 bg-black/40 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-white/10 z-10 transition-all duration-300">
         <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">Masuk ke akun Anda</h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Gunakan kredensial dari Platzi Fake Store API
+          <h2 className="mt-2 text-center text-3xl font-bold bg-clip-text text-transparent bg-linear-to-r from-blue-400 to-purple-400">
+            Welcome Back
+          </h2>
+          <p className="mt-2 text-center text-sm text-gray-400">
+            Sign in to manage your store
           </p>
-          <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <p className="font-bold text-sm text-gray-900 mb-3">Demo Login:</p>
-            <div className="space-y-2 text-sm">
-              <div className="bg-white p-2 rounded border border-blue-100">
-                <p className="font-bold text-blue-600">👑 Admin:</p>
-                <p className="text-gray-900 font-medium">Email: <span className="font-mono">admin@mail.com</span></p>
-                <p className="text-gray-900 font-medium">Password: <span className="font-mono">admin123</span></p>
-              </div>
-              <div className="bg-white p-2 rounded border border-green-100">
-                <p className="font-bold text-green-600">👤 User (Platzi API):</p>
-                <p className="text-gray-900 font-medium">Email: <span className="font-mono">john@mail.com</span> / <span className="font-mono">maria@mail.com</span></p>
-                <p className="text-gray-900 font-medium">Password: <span className="font-mono">changeme</span> / <span className="font-mono">12345</span></p>
-              </div>
-            </div>
-          </div>
         </div>
 
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative">
+          <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-lg relative text-sm">
             {error}
           </div>
         )}
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="rounded-md shadow-sm -space-y-px">
+          <div className="rounded-md space-y-4">
             <div>
-              <label htmlFor="username" className="block text-sm font-bold text-gray-900 mb-1">
-                Email
+              <label htmlFor="username" className="block text-sm font-medium text-gray-300 mb-1">
+                Email Address
               </label>
               <input
                 id="username"
@@ -96,25 +83,38 @@ export default function LoginPage() {
                 type="email"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-gray-900 font-medium"
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:outline-none text-white font-medium placeholder:text-gray-600 transition-all"
                 placeholder="admin@mail.com"
                 required
                 disabled={isLoading}
               />
             </div>
-            <div className="mt-4">
-              <label htmlFor="password" className="block text-sm font-bold text-gray-900 mb-1">Kata Sandi</label>
+            <div className="relative">
+              <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-1">
+                Password
+              </label>
               <input
                 id="password"
                 name="password"
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 required
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-gray-900 font-medium"
-                placeholder="Kata Sandi"
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:outline-none text-white font-medium placeholder:text-gray-600 transition-all pr-12"
+                placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={isLoading}
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-[34px] text-gray-400 hover:text-white focus:outline-none"
+              >
+                {showPassword ? (
+                  <EyeOff className="h-5 w-5" />
+                ) : (
+                  <Eye className="h-5 w-5" />
+                )}
+              </button>
             </div>
           </div>
 
@@ -122,19 +122,31 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-lg font-bold rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold rounded-xl text-white bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-blue-500/25"
             >
-              {isLoading ? 'Memproses...' : 'Masuk'}
+              {isLoading ? 'Processing...' : 'Sign In'}
             </button>
           </div>
         </form>
 
         <div className="text-center">
-          <Link href="/" className="text-blue-600 hover:text-blue-500">
-            &larr; Kembali ke Beranda
+          <Link href="/" className="text-gray-400 hover:text-white text-sm font-medium transition-colors duration-200">
+            &larr; Back to Home
           </Link>
         </div>
       </div>
-    </div>
+    </StarsBackground>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader />
+      </div>
+    }>
+      <LoginForm />
+    </Suspense>
   );
 }
